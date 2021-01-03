@@ -1,0 +1,9 @@
+Snake Socks:
+  Features:
+    ☐ Fighting game
+      ☐ Visuals
+    ☐ Client/Server Shared Game Logic
+    ☐ Websockets
+      ☐ Game loop sync
+    ☐ Market
+

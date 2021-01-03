@@ -1,0 +1,13 @@
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "main": "./lib/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --watch"
+  },
+  "devDependencies": {
+    "tsc": "^1.20150623.0",
+    "typescript": "^4.1.3"
+  }
+}
