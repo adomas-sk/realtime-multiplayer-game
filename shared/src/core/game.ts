@@ -1,7 +1,7 @@
-import { CharacterState } from './character';
+import { characterNext } from './character';
+import { Game } from './interfaces';
 
-export interface Game {
-  gameToken: string;
-  currentTime: number;
-  characters: CharacterState[];
-}
+export const runGame = (game: Game, delta: number) => {
+  game.characters.forEach((character) => characterNext(character, game.platforms, delta));
+  return game;
+};

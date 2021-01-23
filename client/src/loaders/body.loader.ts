@@ -14,8 +14,8 @@ export const loadBodyAnimation = (scene: Phaser.Scene) => {
   scene.anims.create({
     key: BODY_ANIMATION,
     frames: [
+      { key: BODY_SPRITE, frame: 0 },
       { key: BODY_SPRITE, frame: 1 },
-      { key: BODY_SPRITE, frame: 2 },
     ],
     frameRate: 8,
     repeat: -1,

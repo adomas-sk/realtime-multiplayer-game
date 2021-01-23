@@ -1,28 +1,51 @@
-export interface CharacterState {
-  playerId?: string;
-  x: number;
-  y: number;
-  touchingGround: boolean;
-  velocity: number[];
-}
+import { CharacterState, Platform } from './interfaces';
 
-const GRAVITY = 0.00003;
+const GRAVITY = 0.003;
 
-const getNewVelocity = (characterState: CharacterState, delta: number) => {
+const updateVelocity = (characterState: CharacterState, delta: number) => {
   if (!characterState.touchingGround) {
-    // const nextPosition = Math.pow(Math.sqrt(2) * Math.sqrt(characterState.x) + delta * Math.sqrt(GRAVITY), 2) / 2;
-    return [characterState.velocity[0], characterState.velocity[1] + GRAVITY * delta];
+    characterState.velocity[1] += GRAVITY * delta;
+    return;
   }
-  return [characterState.velocity[0], 0];
+  characterState.velocity[1] = 0;
 };
 
-export const characterNext = (characterState: CharacterState, delta: number): CharacterState => {
-  const [newVelx, newVely] = getNewVelocity(characterState, delta);
+const checkForCollision = (character: CharacterState, platform: Platform) => {
+  console.log(
+    character.x > platform.left &&
+      character.x < platform.right &&
+      character.y > platform.top &&
+      character.y < platform.bottom
+  );
+  if (
+    character.x > platform.left &&
+    character.x < platform.right &&
+    character.y > platform.top &&
+    character.y < platform.bottom
+  ) {
+    character.touchingGround = true;
+    character.y = platform.top;
+    character.velocity[1] = 0;
+  } else {
+    character.touchingGround = false;
+  }
+};
 
-  return {
-    ...characterState,
-    x: characterState.x + newVelx * delta,
-    y: characterState.y + newVely * delta,
-    velocity: [newVelx, newVely],
-  };
+export const characterNext = (characterState: CharacterState, platforms: Platform[], delta: number): void => {
+  updateVelocity(characterState, delta);
+
+  platforms.forEach((platform) => checkForCollision(characterState, platform));
+
+  characterState.y += characterState.velocity[1];
+  characterState.x += characterState.velocity[0];
+
+  // characterState.x += newVelx * delta;
+  // characterState.y += newVely * delta;
+  // characterState.velocity = [newVelx, newVely];
+  // return {
+  //   ...characterState,
+  //   x: characterState.x + newVelx * delta,
+  //   y: characterState.y + newVely * delta,
+  //   velocity: [newVelx, newVely],
+  // };
 };
