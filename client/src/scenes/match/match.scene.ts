@@ -15,6 +15,7 @@ import { BODY_SPRITE, loadBodyAnimation, loadBodySprite } from '../../loaders/bo
 import { loadPlatformSprite, PLATFORM_ANIMATION, PLATFORM_SPRITE } from '../../loaders/platform.loader';
 import Button from '../../components/button';
 import { loadPlatformAnimation } from '../../loaders/platform.loader';
+import { leftKeyDown, rightKeyUp, rightKeyDown, leftKeyUp, getEventState } from '../../components/input';
 
 class MatchScene extends Phaser.Scene {
   public static KEY = 'MATCH';
@@ -40,6 +41,10 @@ class MatchScene extends Phaser.Scene {
       new Button(this, 50, 50, this.textures.get(BODY_SPRITE)).makeItCreateGame(this.clientEvents.createGame);
       new Button(this, 100, 50, this.textures.get(BODY_SPRITE)).makeItJoinGame(this.clientEvents.joinGame);
     }
+    this.input.keyboard.on('keydown-A', leftKeyDown(this.clientEvents as ClientEvents));
+    this.input.keyboard.on('keyup-A', leftKeyUp(this.clientEvents as ClientEvents));
+    this.input.keyboard.on('keydown-D', rightKeyDown(this.clientEvents as ClientEvents));
+    this.input.keyboard.on('keyup-D', rightKeyUp(this.clientEvents as ClientEvents));
 
     // this.input.on(Phaser.Input.Events.GAMEOBJECT_POINTER_MOVE, (event: Phaser.Input.Pointer) => {
     //   console.log(event.position);
@@ -74,7 +79,10 @@ class MatchScene extends Phaser.Scene {
 
         const players = getPlayers();
         const playersInGame = [self, ...Object.values(players)];
-        const nextGameState = runGame({ players: playersInGame, platforms: this.platforms }, delta);
+        const nextGameState = runGame(
+          { players: playersInGame, platforms: this.platforms, events: getEventState() },
+          delta
+        );
 
         const nextSelf = nextGameState.players.find((char) => char.playerId === self?.playerId);
 

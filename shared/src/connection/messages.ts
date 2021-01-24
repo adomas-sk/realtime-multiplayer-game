@@ -7,16 +7,26 @@ export enum WEBSOCKET_MESSAGES {
   START_GAME = 'START_GAME',
   GET_GAME_PLAYERS = 'GET_GAME_PLAYERS',
   ERROR = 'ERROR',
+  USER_INPUT = 'USER_INPUT',
+}
+
+export enum USER_INPUT {
+  RIGHT_DOWN = 'RIGHT_DOWN',
+  RIGHT_UP = 'RIGHT_UP',
+  LEFT_DOWN = 'LEFT_DOWN',
+  LEFT_UP = 'LEFT_UP',
 }
 
 export type ServerCreateGamePayload = string;
 export type ServerJoinGamePayload = { gameKey: string; player: Player };
 export type ServerStartGamePayload = number;
 export type ServerGetGamePlayersPayload = Player[];
+export type ServerUserInputPayload = { playerId: string; event: USER_INPUT };
 
 export type ClientCreateGamePayload = string;
 export type ClientJoinGamePayload = string;
 export type ClientReadyPayload = void;
+export type ClientUserInputPayload = USER_INPUT;
 
 const send = (socket: any, event: string, data: any, room?: any) => {
   if (room) {
@@ -33,6 +43,8 @@ const emitServerStartGame = (socket: any, data: ServerStartGamePayload, room: st
   send(socket, WEBSOCKET_MESSAGES.START_GAME, data, room);
 const emitServerGetGamePlayers = (socket: any, data: ServerGetGamePlayersPayload, room: string) =>
   send(socket, WEBSOCKET_MESSAGES.GET_GAME_PLAYERS, data, room);
+const emitServerUserInput = (socket: any, data: ServerUserInputPayload, room: string) =>
+  send(socket, WEBSOCKET_MESSAGES.USER_INPUT, data, room);
 const emitServerError = (socket: any, data: string) => {
   console.error(data);
   send(socket, WEBSOCKET_MESSAGES.ERROR, data);
@@ -43,12 +55,15 @@ const emitClientCreateGame = (socket: any, data: ClientCreateGamePayload) =>
 const emitClientJoinGame = (socket: any, data: ClientJoinGamePayload) =>
   send(socket, WEBSOCKET_MESSAGES.JOIN_GAME, data);
 const emitClientReady = (socket: any, data: ClientReadyPayload) => send(socket, WEBSOCKET_MESSAGES.READY, data);
+const emitClientUserInput = (socket: any, data: ClientUserInputPayload) =>
+  send(socket, WEBSOCKET_MESSAGES.USER_INPUT, data);
 
 export const serverEmit = {
   createGame: emitServerCreateGame,
   joinGame: emitServerJoinGame,
   startGame: emitServerStartGame,
   getGamePlayers: emitServerGetGamePlayers,
+  userInput: emitServerUserInput,
   error: emitServerError,
 };
 
@@ -56,4 +71,5 @@ export const clientEmit = {
   createGame: emitClientCreateGame,
   joinGame: emitClientJoinGame,
   ready: emitClientReady,
+  userInput: emitClientUserInput,
 };

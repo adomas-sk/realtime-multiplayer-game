@@ -7,5 +7,6 @@ export const disconnectEventHandler = (socket: Socket, games: Games) => () => {
   if (!game) {
     return;
   }
-  game.playerDisconnected;
+  console.log(`Player ${socket.id} has disconnected from game ${game.gameKey}`);
+  game.playerDisconnected(socket.id);
 };

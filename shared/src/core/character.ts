@@ -1,13 +1,45 @@
-import { Player, Platform, PlayerState } from './interfaces';
+import { Player, Platform, PlayerState, EventState } from './interfaces';
 
 const GRAVITY = 0.003;
+const ACCELLERATION = 0.3;
+const MAX_SPEED = 5;
+const FRICTION = 0.6;
 
-const updateVelocity = (player: Player, delta: number) => {
+const updateVelocity = (player: Player, eventState: EventState, delta: number) => {
   if (!player.playerState.touchingGround) {
     player.playerState.velocity[1] += GRAVITY * delta;
     return;
   }
   player.playerState.velocity[1] = 0;
+
+  if (eventState.left) {
+    player.playerState.velocity[0] -= ACCELLERATION;
+    if (player.playerState.velocity[0] <= -MAX_SPEED) {
+      player.playerState.velocity[0] = -MAX_SPEED;
+    }
+  }
+  if (eventState.right) {
+    player.playerState.velocity[0] += ACCELLERATION;
+    if (player.playerState.velocity[0] >= MAX_SPEED) {
+      player.playerState.velocity[0] = MAX_SPEED;
+    }
+  }
+  if (
+    ((!eventState.left && !eventState.right) || (eventState.left && eventState.right)) &&
+    player.playerState.velocity[0] !== 0
+  ) {
+    if (player.playerState.velocity[0] > 0) {
+      player.playerState.velocity[0] -= FRICTION;
+      if (player.playerState.velocity[0] < 0) {
+        player.playerState.velocity[0] = 0;
+      }
+    } else if (player.playerState.velocity[0] < 0) {
+      player.playerState.velocity[0] += FRICTION;
+      if (player.playerState.velocity[0] > 0) {
+        player.playerState.velocity[0] = 0;
+      }
+    }
+  }
 };
 
 const checkForCollision = (playerState: Player, platform: Platform) => {
@@ -32,8 +64,8 @@ const checkIfFellOffTheWorld = (playerState: PlayerState) => {
   }
 };
 
-export const characterNext = (player: Player, platforms: Platform[], delta: number): void => {
-  updateVelocity(player, delta);
+export const characterNext = (player: Player, eventState: EventState, platforms: Platform[], delta: number): void => {
+  updateVelocity(player, eventState, delta);
 
   platforms.forEach((platform) => checkForCollision(player, platform));
 

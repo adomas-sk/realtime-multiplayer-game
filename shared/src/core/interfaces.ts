@@ -21,7 +21,13 @@ export interface PlayerState {
   velocity: number[];
 }
 
+export interface EventState {
+  left: boolean;
+  right: boolean;
+}
+
 export interface Game {
   players: Player[];
   platforms: Platform[];
+  events: { [key: string]: EventState };
 }
