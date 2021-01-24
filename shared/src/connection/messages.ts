@@ -1,3 +1,5 @@
+import { Player } from '../core';
+
 export enum WEBSOCKET_MESSAGES {
   CREATE_GAME = 'CREATE_GAME',
   JOIN_GAME = 'JOIN_GAME',
@@ -8,9 +10,9 @@ export enum WEBSOCKET_MESSAGES {
 }
 
 export type ServerCreateGamePayload = string;
-export type ServerJoinGamePayload = { gameKey: string; playerId: string };
+export type ServerJoinGamePayload = { gameKey: string; player: Player };
 export type ServerStartGamePayload = number;
-export type ServerGetGamePlayersPayload = string[];
+export type ServerGetGamePlayersPayload = Player[];
 
 export type ClientCreateGamePayload = string;
 export type ClientJoinGamePayload = string;

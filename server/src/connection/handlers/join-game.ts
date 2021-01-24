@@ -1,4 +1,4 @@
-import { ClientJoinGamePayload, serverEmit } from 'shared';
+import { ClientJoinGamePayload, serverEmit, Player } from 'shared';
 import { Socket } from 'socket.io';
 import { Games } from '../interfaces';
 
@@ -21,12 +21,30 @@ export const joinGameEventHandler = (socket: Socket, games: Games) => (gameKey: 
       throw new Error('Player already in game');
     }
 
-    game.playerJoin(socket.id);
+    const newPlayer: Player = {
+      playerId: socket.id,
+      playerState: {
+        x: 200 + game.players.length * 50,
+        y: 200,
+        touchingGround: false,
+        velocity: [0, 0],
+      },
+      verticalFromCenter: 16,
+      horizontalFromCenter: 16,
+    };
+    game.playerJoin(newPlayer);
 
-    serverEmit.joinGame(socket, { gameKey, playerId: socket.id }, gameKey);
+    serverEmit.joinGame(
+      socket,
+      {
+        gameKey,
+        player: newPlayer,
+      },
+      gameKey
+    );
     serverEmit.getGamePlayers(
       socket,
-      game.players.map((player) => player.playerId).filter((id) => id !== socket.id),
+      game.players.map((player) => player.playerData).filter((playerData) => playerData.playerId !== socket.id),
       socket.id
     );
 

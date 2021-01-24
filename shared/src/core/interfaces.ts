@@ -5,15 +5,23 @@ export interface Platform {
   bottom: number;
 }
 
-export interface Game {
-  characters: CharacterState[];
-  platforms: Platform[];
+// Data that does not change
+export interface Player {
+  playerId: string;
+  verticalFromCenter: number;
+  horizontalFromCenter: number;
+  playerState: PlayerState;
 }
 
-export interface CharacterState {
-  playerId?: string;
+// Data that changes based on what happens
+export interface PlayerState {
   x: number;
   y: number;
   touchingGround: boolean;
   velocity: number[];
+}
+
+export interface Game {
+  players: Player[];
+  platforms: Platform[];
 }

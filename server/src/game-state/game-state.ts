@@ -1,7 +1,8 @@
-import { characterNext, Game } from 'shared';
+import { characterNext, Game, Player } from 'shared';
 
 interface GamePlayer {
   playerId: string;
+  playerData: Player;
   ready?: boolean;
   disconnected: boolean;
 }
@@ -17,8 +18,8 @@ class GameState {
     this.gameKey = gameKey;
   }
 
-  public playerJoin = (playerId: string) => {
-    this.players.push({ playerId, disconnected: false });
+  public playerJoin = (player: Player) => {
+    this.players.push({ playerId: player.playerId, playerData: player, disconnected: false });
   };
 
   public playerReady = (playerId: string) => {

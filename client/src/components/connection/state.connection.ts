@@ -1,6 +1,4 @@
-interface Player {
-  playerId: string;
-}
+import type { Player } from 'shared';
 
 interface ConnectionState {
   gameJoined?: string;
@@ -41,16 +39,23 @@ export const setGameStarted = createEvent('GAME STARTED')((gameStartedAt: number
   state.gameStartedAt = gameStartedAt;
 });
 
-export const addPlayer = createEvent('PLAYER JOINED')((playerId: string) => {
-  if (state.playersJoined[playerId]) {
+export const addPlayer = createEvent('PLAYER JOINED')((player: Player) => {
+  if (state.playersJoined[player.playerId]) {
     throw new Error('Player already joined');
   }
-  state.playersJoined[playerId] = { playerId: playerId };
+  state.playersJoined[player.playerId] = player;
 });
 
-export const addSelf = createEvent('ADDED SELF')((playerId: string) => {
+export const addSelf = createEvent('ADD SELF')((player: Player) => {
   if (state.self) {
     throw new Error('Self already joined');
   }
-  state.self = { playerId: playerId };
+  state.self = player;
+});
+
+export const setPlayer = createEvent('SET PLAYER')((player: Player) => {
+  state.playersJoined[player.playerId] = player;
+});
+export const setSelf = createEvent('SET SELF')((player: Player) => {
+  state.self = player;
 });

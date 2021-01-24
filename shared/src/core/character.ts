@@ -1,51 +1,44 @@
-import { CharacterState, Platform } from './interfaces';
+import { Player, Platform, PlayerState } from './interfaces';
 
 const GRAVITY = 0.003;
 
-const updateVelocity = (characterState: CharacterState, delta: number) => {
-  if (!characterState.touchingGround) {
-    characterState.velocity[1] += GRAVITY * delta;
+const updateVelocity = (player: Player, delta: number) => {
+  if (!player.playerState.touchingGround) {
+    player.playerState.velocity[1] += GRAVITY * delta;
     return;
   }
-  characterState.velocity[1] = 0;
+  player.playerState.velocity[1] = 0;
 };
 
-const checkForCollision = (character: CharacterState, platform: Platform) => {
-  console.log(
-    character.x > platform.left &&
-      character.x < platform.right &&
-      character.y > platform.top &&
-      character.y < platform.bottom
-  );
+const checkForCollision = (playerState: Player, platform: Platform) => {
   if (
-    character.x > platform.left &&
-    character.x < platform.right &&
-    character.y > platform.top &&
-    character.y < platform.bottom
+    playerState.playerState.x - playerState.horizontalFromCenter >= platform.left &&
+    playerState.playerState.x + playerState.horizontalFromCenter <= platform.right &&
+    playerState.playerState.y + playerState.verticalFromCenter >= platform.top &&
+    playerState.playerState.y - playerState.verticalFromCenter <= platform.bottom
   ) {
-    character.touchingGround = true;
-    character.y = platform.top;
-    character.velocity[1] = 0;
+    playerState.playerState.touchingGround = true;
+    playerState.playerState.y = platform.top - 16;
+    playerState.playerState.velocity[1] = 0;
   } else {
-    character.touchingGround = false;
+    playerState.playerState.touchingGround = false;
   }
 };
 
-export const characterNext = (characterState: CharacterState, platforms: Platform[], delta: number): void => {
-  updateVelocity(characterState, delta);
+const checkIfFellOffTheWorld = (playerState: PlayerState) => {
+  if (playerState.y > 1000) {
+    playerState.x = 200;
+    playerState.y = 200;
+  }
+};
 
-  platforms.forEach((platform) => checkForCollision(characterState, platform));
+export const characterNext = (player: Player, platforms: Platform[], delta: number): void => {
+  updateVelocity(player, delta);
 
-  characterState.y += characterState.velocity[1];
-  characterState.x += characterState.velocity[0];
+  platforms.forEach((platform) => checkForCollision(player, platform));
 
-  // characterState.x += newVelx * delta;
-  // characterState.y += newVely * delta;
-  // characterState.velocity = [newVelx, newVely];
-  // return {
-  //   ...characterState,
-  //   x: characterState.x + newVelx * delta,
-  //   y: characterState.y + newVely * delta,
-  //   velocity: [newVelx, newVely],
-  // };
+  player.playerState.y += player.playerState.velocity[1];
+  player.playerState.x += player.playerState.velocity[0];
+
+  checkIfFellOffTheWorld(player.playerState);
 };

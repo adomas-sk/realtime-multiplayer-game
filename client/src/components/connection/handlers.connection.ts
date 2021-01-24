@@ -7,15 +7,8 @@ import {
   WEBSOCKET_MESSAGES,
 } from 'shared';
 import type { ClientEvents } from './events.connections';
-import {
-  addPlayer,
-  addSelf,
-  getPlayers,
-  setGameStarted,
-  setJoinedGame,
-  getSelf,
-  getGameJoined,
-} from './state.connection';
+import { addPlayer, addSelf, setGameStarted, setJoinedGame, getSelf, getGameJoined } from './state.connection';
+import { updateGameKey } from '../button/button';
 
 export const createHandlers = (socket: Socket, clientEvents: ClientEvents) => {
   socket.on(WEBSOCKET_MESSAGES.CREATE_GAME, (data: ServerCreateGamePayload) => {
@@ -26,10 +19,10 @@ export const createHandlers = (socket: Socket, clientEvents: ClientEvents) => {
       setJoinedGame(data.gameKey);
     }
     if (!getSelf()) {
-      addSelf(data.playerId);
+      addSelf(data.player);
       return;
     }
-    addPlayer(data.playerId);
+    addPlayer(data.player);
   });
   socket.on(WEBSOCKET_MESSAGES.START_GAME, (data: ServerStartGamePayload) => {
     setGameStarted(data);
@@ -38,6 +31,9 @@ export const createHandlers = (socket: Socket, clientEvents: ClientEvents) => {
     data.filter((playerId) => playerId !== getSelf()?.playerId).forEach((playerId) => addPlayer(playerId));
   });
   socket.on(WEBSOCKET_MESSAGES.ERROR, (data: string) => {
+    if (data === 'Game has already started') {
+      updateGameKey();
+    }
     console.error(data);
   });
 };

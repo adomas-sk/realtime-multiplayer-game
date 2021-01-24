@@ -2,7 +2,8 @@ import { BODY_ANIMATION } from '../../loaders/body.loader';
 import type { ClientEvents } from '../connection';
 
 // TODO: remove
-const gameKey = '123';
+let gameKey = '111';
+export const updateGameKey = () => (gameKey = `${gameKey}1`);
 
 class Button extends Phaser.GameObjects.Sprite {
   private hasPurpose = false;
