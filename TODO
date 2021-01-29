@@ -1,1 +1,9 @@
-?????
+FEATURES:
+  [] Make events work with timestamps
+  [] Make game physics work with timestamps
+  [] Add more assets
+  [] Make server not run game loop :O
+  [] Make lots of money
+  [] Add sounds (learn how to add sounds)
+BUGS:
+  [] Figure out why player sprite doesn't have an animation

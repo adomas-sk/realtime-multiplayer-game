@@ -1,4 +1,5 @@
 export interface Platform {
+  id: string;
   top: number;
   left: number;
   right: number;
@@ -10,6 +11,9 @@ export interface Player {
   playerId: string;
   verticalFromCenter: number;
   horizontalFromCenter: number;
+  rendered?: boolean;
+  ready?: boolean;
+  disconnected?: boolean;
   playerState: PlayerState;
 }
 
@@ -26,8 +30,4 @@ export interface EventState {
   right: boolean;
 }
 
-export interface Game {
-  players: Player[];
-  platforms: Platform[];
-  events: { [key: string]: EventState };
-}
+export type ObjectOf<T> = { [key: string]: T };

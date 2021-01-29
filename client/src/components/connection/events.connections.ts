@@ -12,7 +12,8 @@ const createGameEvent = (socket: Socket): ClientEvents['createGame'] => (gameKey
   clientEmit.createGame(socket, gameKey);
 const joinGameEvent = (socket: Socket): ClientEvents['joinGame'] => (gameKey) => clientEmit.joinGame(socket, gameKey);
 const readyGameEvent = (socket: Socket): ClientEvents['ready'] => () => clientEmit.ready(socket);
-const userInputEvent = (socket: Socket): ClientEvents['userInput'] => (input) => clientEmit.userInput(socket, input);
+const userInputEvent = (socket: Socket): ClientEvents['userInput'] => (input) =>
+  clientEmit.userInput(socket, { event: input, timestamp: Date.now() });
 
 export const createClientEvents = (socket: Socket) => {
   return {

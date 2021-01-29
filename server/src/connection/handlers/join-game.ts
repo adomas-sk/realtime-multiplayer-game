@@ -1,30 +1,30 @@
-import { ClientJoinGamePayload, serverEmit, Player } from 'shared';
+import { ClientJoinGamePayload, serverEmit, Player, ObjectOf, Game } from 'shared';
 import { Socket } from 'socket.io';
-import { Games } from '../interfaces';
 
-const getGame = (games: Games, gameKey: string) => {
+const getGame = (games: ObjectOf<Game>, gameKey: string) => {
   if (!games[gameKey]) {
     throw new Error('Game not found');
   }
   return games[gameKey];
 };
 
-export const joinGameEventHandler = (socket: Socket, games: Games) => (gameKey: ClientJoinGamePayload) => {
+export const joinGameEventHandler = (socket: Socket, games: ObjectOf<Game>) => (gameKey: ClientJoinGamePayload) => {
   try {
     const game = getGame(games, gameKey);
-    if (game.startTime) {
+    if (game.gameStarted) {
       throw new Error('Game has already started');
     }
 
-    const playerInGame = game.players.find((player) => player.playerId === socket.id);
+    const playerInGame = game.getPlayer(socket.id, false);
     if (playerInGame) {
       throw new Error('Player already in game');
     }
+    socket.join(gameKey);
 
     const newPlayer: Player = {
       playerId: socket.id,
       playerState: {
-        x: 200 + game.players.length * 50,
+        x: 200 + game.getNonRenderedPlayers().length * 50,
         y: 200,
         touchingGround: false,
         velocity: [0, 0],
@@ -32,7 +32,7 @@ export const joinGameEventHandler = (socket: Socket, games: Games) => (gameKey: 
       verticalFromCenter: 16,
       horizontalFromCenter: 16,
     };
-    game.playerJoin(newPlayer);
+    game.addPlayer(newPlayer);
 
     serverEmit.joinGame(
       socket,
@@ -42,9 +42,10 @@ export const joinGameEventHandler = (socket: Socket, games: Games) => (gameKey: 
       },
       gameKey
     );
+
     serverEmit.getGamePlayers(
       socket,
-      game.players.map((player) => player.playerData).filter((playerData) => playerData.playerId !== socket.id),
+      game.getPlayersExcept(socket.id),
       socket.id
     );
 

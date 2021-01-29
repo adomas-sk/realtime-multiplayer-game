@@ -1,4 +1,4 @@
-import { Player } from '../core';
+import { ObjectOf, Player } from '../core';
 
 export enum WEBSOCKET_MESSAGES {
   CREATE_GAME = 'CREATE_GAME',
@@ -8,6 +8,7 @@ export enum WEBSOCKET_MESSAGES {
   GET_GAME_PLAYERS = 'GET_GAME_PLAYERS',
   ERROR = 'ERROR',
   USER_INPUT = 'USER_INPUT',
+  GAME_STATE_UPDATE = 'GAME_STATE_UPDATE',
 }
 
 export enum USER_INPUT {
@@ -21,12 +22,13 @@ export type ServerCreateGamePayload = string;
 export type ServerJoinGamePayload = { gameKey: string; player: Player };
 export type ServerStartGamePayload = number;
 export type ServerGetGamePlayersPayload = Player[];
-export type ServerUserInputPayload = { playerId: string; event: USER_INPUT };
+export type ServerUserInputPayload = { playerId: string; event: USER_INPUT; timestamp: number };
+export type ServerGameStateUpdatePayload = { players: ObjectOf<Player> };
 
 export type ClientCreateGamePayload = string;
 export type ClientJoinGamePayload = string;
 export type ClientReadyPayload = void;
-export type ClientUserInputPayload = USER_INPUT;
+export type ClientUserInputPayload = { event: USER_INPUT; timestamp: number };
 
 const send = (socket: any, event: string, data: any, room?: any) => {
   if (room) {
@@ -45,6 +47,8 @@ const emitServerGetGamePlayers = (socket: any, data: ServerGetGamePlayersPayload
   send(socket, WEBSOCKET_MESSAGES.GET_GAME_PLAYERS, data, room);
 const emitServerUserInput = (socket: any, data: ServerUserInputPayload, room: string) =>
   send(socket, WEBSOCKET_MESSAGES.USER_INPUT, data, room);
+const emitGameStateUpdateInput = (socket: any, data: ServerGameStateUpdatePayload, room: string) =>
+  send(socket, WEBSOCKET_MESSAGES.GAME_STATE_UPDATE, data, room);
 const emitServerError = (socket: any, data: string) => {
   console.error(data);
   send(socket, WEBSOCKET_MESSAGES.ERROR, data);
@@ -64,6 +68,7 @@ export const serverEmit = {
   startGame: emitServerStartGame,
   getGamePlayers: emitServerGetGamePlayers,
   userInput: emitServerUserInput,
+  gameStateUpdate: emitGameStateUpdateInput,
   error: emitServerError,
 };
 

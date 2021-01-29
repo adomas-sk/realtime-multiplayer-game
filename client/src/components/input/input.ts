@@ -1,35 +1,23 @@
-import { USER_INPUT, EventState, Player } from 'shared';
-import { ClientEvents, getSelf } from '../connection';
+import { USER_INPUT } from 'shared';
+import type { ClientEvents } from '../connection';
+import { getCurrentPlayerId, getGame } from '../state';
 
-const initialEventState: EventState = { left: false, right: false };
-
-const eventState: { [key: string]: EventState } = {};
-
-export const getEventState = () => eventState;
-export const addPlayerEventState = (playerId: string) => {
-  eventState[playerId] = initialEventState;
-};
-
-export const leftKeyDown = (clientEvents: ClientEvents, playerId?: string) => () => {
-  const fromPlayerId = playerId || (getSelf() as Player).playerId;
-  eventState[fromPlayerId].left = true;
+export const leftKeyDown = (clientEvents: ClientEvents) => () => {
+  getGame().processPlayerEvent(getCurrentPlayerId(), USER_INPUT.LEFT_DOWN);
   clientEvents.userInput(USER_INPUT.LEFT_DOWN);
 };
 
-export const leftKeyUp = (clientEvents: ClientEvents, playerId?: string) => () => {
-  const fromPlayerId = playerId || (getSelf() as Player).playerId;
-  eventState[fromPlayerId].left = false;
+export const leftKeyUp = (clientEvents: ClientEvents) => () => {
+  getGame().processPlayerEvent(getCurrentPlayerId(), USER_INPUT.LEFT_UP);
   clientEvents.userInput(USER_INPUT.LEFT_UP);
 };
 
-export const rightKeyUp = (clientEvents: ClientEvents, playerId?: string) => () => {
-  const fromPlayerId = playerId || (getSelf() as Player).playerId;
-  eventState[fromPlayerId].right = false;
+export const rightKeyUp = (clientEvents: ClientEvents) => () => {
+  getGame().processPlayerEvent(getCurrentPlayerId(), USER_INPUT.RIGHT_UP);
   clientEvents.userInput(USER_INPUT.RIGHT_UP);
 };
 
-export const rightKeyDown = (clientEvents: ClientEvents, playerId?: string) => () => {
-  const fromPlayerId = playerId || (getSelf() as Player).playerId;
-  eventState[fromPlayerId].right = true;
+export const rightKeyDown = (clientEvents: ClientEvents) => () => {
+  getGame().processPlayerEvent(getCurrentPlayerId(), USER_INPUT.RIGHT_DOWN);
   clientEvents.userInput(USER_INPUT.RIGHT_DOWN);
 };

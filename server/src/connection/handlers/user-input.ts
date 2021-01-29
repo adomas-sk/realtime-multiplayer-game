@@ -1,13 +1,13 @@
-import { ClientUserInputPayload, serverEmit } from 'shared';
+import { ClientUserInputPayload, Game, ObjectOf, serverEmit } from 'shared';
 import { Socket } from 'socket.io';
-import { Games } from '../interfaces';
 import { findGameByPlayerId } from './helpers';
 
-export const userInputEventHandler = (socket: Socket, games: Games) => (data: ClientUserInputPayload) => {
+export const userInputEventHandler = (socket: Socket, games: ObjectOf<Game>) => (data: ClientUserInputPayload) => {
   const game = findGameByPlayerId(games, socket.id);
   if (!game) {
     return;
   }
+  game.processPlayerEvent(socket.id, data.event, data.timestamp);
 
-  serverEmit.userInput(socket, { playerId: socket.id, event: data }, game.gameKey);
-};
+  serverEmit.userInput(socket, { playerId: socket.id, ...data }, game.gameKey);
+};;;

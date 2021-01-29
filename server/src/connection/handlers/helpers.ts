@@ -1,11 +1,9 @@
-import { Games } from '../interfaces';
+import { Game, ObjectOf } from 'shared';
 
-export const findGameByPlayerId = (games: Games, playerId: string) => {
-  const gameKey = Object.keys(games).find((gameKey) =>
-    games[gameKey]?.players.find((player) => player.playerId === playerId)
-  );
-  if (!gameKey) {
+export const findGameByPlayerId = (games: ObjectOf<Game>, playerId: string) => {
+  const game = Object.values(games).find((game) => game.getPlayer(playerId));
+  if (!game) {
     return null;
   }
-  return games[gameKey];
+  return game;
 };

@@ -8,9 +8,9 @@ const FRICTION = 0.6;
 const updateVelocity = (player: Player, eventState: EventState, delta: number) => {
   if (!player.playerState.touchingGround) {
     player.playerState.velocity[1] += GRAVITY * delta;
-    return;
+  } else {
+    player.playerState.velocity[1] = 0;
   }
-  player.playerState.velocity[1] = 0;
 
   if (eventState.left) {
     player.playerState.velocity[0] -= ACCELLERATION;

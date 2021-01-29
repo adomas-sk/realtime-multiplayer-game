@@ -5,50 +5,41 @@ import {
   ServerJoinGamePayload,
   ServerStartGamePayload,
   ServerUserInputPayload,
+  ServerGameStateUpdatePayload,
   WEBSOCKET_MESSAGES,
-  USER_INPUT,
 } from 'shared';
 
 import type { ClientEvents } from './events.connections';
-import { addPlayer, addSelf, setGameStarted, setJoinedGame, getSelf, getGameJoined } from './state.connection';
 import { updateGameKey } from '../button/button';
-import { addPlayerEventState, leftKeyDown, leftKeyUp, rightKeyDown, rightKeyUp } from '../input';
+import { getCurrentPlayerId, getGame, setCurrentPlayerId } from '../state';
 
 export const createHandlers = (socket: Socket, clientEvents: ClientEvents) => {
   socket.on(WEBSOCKET_MESSAGES.CREATE_GAME, (data: ServerCreateGamePayload) => {
     clientEvents.joinGame(data);
   });
   socket.on(WEBSOCKET_MESSAGES.JOIN_GAME, (data: ServerJoinGamePayload) => {
-    if (!getGameJoined()) {
-      setJoinedGame(data.gameKey);
+    if (!getGame().gameKey) {
+      getGame().addGameKey(data.gameKey);
     }
-    if (!getSelf()) {
-      addPlayerEventState(data.player.playerId);
-      addSelf(data.player);
-      return;
+    if (!getCurrentPlayerId()) {
+      setCurrentPlayerId(data.player.playerId);
     }
-    addPlayerEventState(data.player.playerId);
-    addPlayer(data.player);
+    getGame().addPlayer(data.player);
   });
   socket.on(WEBSOCKET_MESSAGES.START_GAME, (data: ServerStartGamePayload) => {
-    setGameStarted(data);
+    getGame().startGame(data);
   });
   socket.on(WEBSOCKET_MESSAGES.GET_GAME_PLAYERS, (data: ServerGetGamePlayersPayload) => {
-    data.forEach((player) => addPlayer(player));
+    data.forEach((player) => getGame().addPlayer(player));
   });
-  socket.on(WEBSOCKET_MESSAGES.USER_INPUT, (data: ServerUserInputPayload) => {
-    switch (data.event) {
-      case USER_INPUT.RIGHT_DOWN:
-        return rightKeyDown(clientEvents, data.playerId);
-      case USER_INPUT.RIGHT_UP:
-        return rightKeyUp(clientEvents, data.playerId);
-      case USER_INPUT.LEFT_DOWN:
-        return leftKeyDown(clientEvents, data.playerId);
-      case USER_INPUT.LEFT_UP:
-        return leftKeyUp(clientEvents, data.playerId);
-      default:
-        throw new Error('Unknown Event');
+  socket.on(WEBSOCKET_MESSAGES.USER_INPUT, ({ playerId, event }: ServerUserInputPayload) => {
+    if (playerId === getCurrentPlayerId()) {
+      return;
     }
+    getGame().processPlayerEvent(playerId, event);
+  });
+  socket.on(WEBSOCKET_MESSAGES.GAME_STATE_UPDATE, ({ players }: ServerGameStateUpdatePayload) => {
+    getGame().updatePlayers(players);
   });
   socket.on(WEBSOCKET_MESSAGES.ERROR, (data: string) => {
     if (data === 'Game has already started') {

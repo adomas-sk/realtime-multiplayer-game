@@ -1,20 +1,27 @@
-import { ClientCreateGamePayload, serverEmit } from 'shared';
+import { ClientCreateGamePayload, Game, ObjectOf, serverEmit } from 'shared';
 import { Socket } from 'socket.io';
-import { GameState } from '../../game-state';
-import { Games } from '../interfaces';
 
-const createGame = (games: Games, gameKey: string) => {
+const createGame = (games: ObjectOf<Game>, gameKey: string) => {
   if (games[gameKey]) {
     throw new Error('Game already exists');
   }
-  const newGame = new GameState(gameKey);
+  const newGame = new Game(gameKey);
+  newGame.addPlatform({ id: '1', left: 0, right: 600, top: 400 - 50, bottom: 500 - 50 });
   games[gameKey] = newGame;
   return newGame;
 };
 
-export const createGameEventHandler = (socket: Socket, games: Games) => (gameKey: ClientCreateGamePayload) => {
+export const createGameEventHandler = (socket: Socket, games: ObjectOf<Game>) => (gameKey: ClientCreateGamePayload) => {
   try {
-    createGame(games, gameKey);
+    const game = createGame(games, gameKey);
+    
+    game.serverClockId = Number(setInterval(() => {
+      game.gameStarted && game.progressGame(1000 / 60);
+      // if (game.checkEventOccurance()) {
+        serverEmit.gameStateUpdate(socket, game.getGameState(), gameKey);
+      // }
+    }, 1000 / 60));
+    
     socket.join(gameKey);
 
     serverEmit.createGame(socket, gameKey, gameKey);
