@@ -14,14 +14,14 @@ const createGame = (games: ObjectOf<Game>, gameKey: string) => {
 export const createGameEventHandler = (socket: Socket, games: ObjectOf<Game>) => (gameKey: ClientCreateGamePayload) => {
   try {
     const game = createGame(games, gameKey);
-    
-    game.serverClockId = Number(setInterval(() => {
-      game.gameStarted && game.progressGame(1000 / 60);
-      // if (game.checkEventOccurance()) {
+
+    game.serverClockId = Number(
+      setInterval(() => {
+        game.gameStarted && game.progressGame(1000 / 60);
         serverEmit.gameStateUpdate(socket, game.getGameState(), gameKey);
-      // }
-    }, 1000 / 60));
-    
+      }, 1000 / 60)
+    );
+
     socket.join(gameKey);
 
     serverEmit.createGame(socket, gameKey, gameKey);

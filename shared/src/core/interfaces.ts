@@ -1,3 +1,5 @@
+import { USER_INPUT } from '../connection';
+
 export interface Platform {
   id: string;
   top: number;
@@ -24,7 +26,11 @@ export interface PlayerState {
   touchingGround: boolean;
   velocity: number[];
 }
-
+export interface PlayerEvent {
+  playerId: string;
+  event: USER_INPUT;
+  timeSinceLastTick: number;
+}
 export interface EventState {
   left: boolean;
   right: boolean;

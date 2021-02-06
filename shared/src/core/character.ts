@@ -1,42 +1,90 @@
-import { Player, Platform, PlayerState, EventState } from './interfaces';
+import { USER_INPUT } from '../connection';
+import { Player, Platform, PlayerState, EventState, PlayerEvent } from './interfaces';
 
 const GRAVITY = 0.003;
 const ACCELLERATION = 0.3;
 const MAX_SPEED = 5;
 const FRICTION = 0.6;
 
-const updateVelocity = (player: Player, eventState: EventState, delta: number) => {
+interface UpdateVelocityProps {
+  player: Player;
+  playerEvents: PlayerEvent[];
+  delta: number;
+  eventState: EventState;
+}
+
+const updateVelocity = ({ player, playerEvents, delta, eventState }: UpdateVelocityProps) => {
   if (!player.playerState.touchingGround) {
     player.playerState.velocity[1] += GRAVITY * delta;
   } else {
     player.playerState.velocity[1] = 0;
   }
 
-  if (eventState.left) {
-    player.playerState.velocity[0] -= ACCELLERATION;
-    if (player.playerState.velocity[0] <= -MAX_SPEED) {
-      player.playerState.velocity[0] = -MAX_SPEED;
-    }
-  }
-  if (eventState.right) {
-    player.playerState.velocity[0] += ACCELLERATION;
-    if (player.playerState.velocity[0] >= MAX_SPEED) {
-      player.playerState.velocity[0] = MAX_SPEED;
-    }
-  }
-  if (
-    ((!eventState.left && !eventState.right) || (eventState.left && eventState.right)) &&
-    player.playerState.velocity[0] !== 0
-  ) {
-    if (player.playerState.velocity[0] > 0) {
-      player.playerState.velocity[0] -= FRICTION;
-      if (player.playerState.velocity[0] < 0) {
-        player.playerState.velocity[0] = 0;
+  const leftChanges = playerEvents.some(
+    (event) => event.event === USER_INPUT.LEFT_DOWN || event.event === USER_INPUT.LEFT_UP
+  );
+  const rightChanges = playerEvents.some(
+    (event) => event.event === USER_INPUT.RIGHT_DOWN || event.event === USER_INPUT.RIGHT_UP
+  );
+
+  playerEvents.forEach((event) => {
+    const left = event.event === USER_INPUT.LEFT_DOWN;
+    const right = event.event === USER_INPUT.RIGHT_DOWN;
+
+    if (left) {
+      player.playerState.velocity[0] -= ACCELLERATION * event.timeSinceLastTick;
+      if (player.playerState.velocity[0] <= -MAX_SPEED) {
+        player.playerState.velocity[0] = -MAX_SPEED;
       }
-    } else if (player.playerState.velocity[0] < 0) {
-      player.playerState.velocity[0] += FRICTION;
+    }
+    if (right) {
+      player.playerState.velocity[0] -= ACCELLERATION * event.timeSinceLastTick;
+      if (player.playerState.velocity[0] <= -MAX_SPEED) {
+        player.playerState.velocity[0] = -MAX_SPEED;
+      }
+    }
+    if (((!left && !right) || (left && right)) && player.playerState.velocity[0] !== 0) {
       if (player.playerState.velocity[0] > 0) {
-        player.playerState.velocity[0] = 0;
+        player.playerState.velocity[0] -= FRICTION * event.timeSinceLastTick;
+        if (player.playerState.velocity[0] < 0) {
+          player.playerState.velocity[0] = 0;
+        }
+      } else if (player.playerState.velocity[0] < 0) {
+        player.playerState.velocity[0] += FRICTION * event.timeSinceLastTick;
+        if (player.playerState.velocity[0] > 0) {
+          player.playerState.velocity[0] = 0;
+        }
+      }
+    }
+  });
+
+  if (leftChanges || rightChanges) {
+    if (eventState.left) {
+      player.playerState.velocity[0] -= ACCELLERATION * delta;
+      if (player.playerState.velocity[0] <= -MAX_SPEED) {
+        player.playerState.velocity[0] = -MAX_SPEED;
+      }
+    }
+    if (eventState.right) {
+      player.playerState.velocity[0] += ACCELLERATION * delta;
+      if (player.playerState.velocity[0] >= MAX_SPEED) {
+        player.playerState.velocity[0] = MAX_SPEED;
+      }
+    }
+    if (
+      ((!eventState.left && !eventState.right) || (eventState.left && eventState.right)) &&
+      player.playerState.velocity[0] !== 0
+    ) {
+      if (player.playerState.velocity[0] > 0) {
+        player.playerState.velocity[0] -= FRICTION * delta;
+        if (player.playerState.velocity[0] < 0) {
+          player.playerState.velocity[0] = 0;
+        }
+      } else if (player.playerState.velocity[0] < 0) {
+        player.playerState.velocity[0] += FRICTION * delta;
+        if (player.playerState.velocity[0] > 0) {
+          player.playerState.velocity[0] = 0;
+        }
       }
     }
   }
@@ -64,13 +112,26 @@ const checkIfFellOffTheWorld = (playerState: PlayerState) => {
   }
 };
 
-export const characterNext = (player: Player, eventState: EventState, platforms: Platform[], delta: number): void => {
-  updateVelocity(player, eventState, delta);
+interface CharacterNextProps {
+  player: Player;
+  eventState: EventState;
+  playerEvents: PlayerEvent[];
+  platforms: Platform[];
+  delta: number;
+}
+
+export const characterNext = ({ player, eventState, platforms, delta, playerEvents }: CharacterNextProps): void => {
+  updateVelocity({
+    player,
+    playerEvents: playerEvents.filter((event) => event.playerId === player.playerId),
+    eventState,
+    delta,
+  });
 
   platforms.forEach((platform) => checkForCollision(player, platform));
 
-  player.playerState.y += player.playerState.velocity[1];
-  player.playerState.x += player.playerState.velocity[0];
+  player.playerState.y += (player.playerState.velocity[1] * delta * delta) / 2;
+  player.playerState.x += (player.playerState.velocity[0] * delta * delta) / 2;
 
   checkIfFellOffTheWorld(player.playerState);
 };

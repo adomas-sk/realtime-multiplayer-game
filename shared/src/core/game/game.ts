@@ -1,18 +1,18 @@
-import { USER_INPUT } from '../connection';
-import { characterNext } from './character';
-import { ObjectOf, Player, Platform, EventState } from './interfaces';
+import { USER_INPUT } from '../../connection';
+import { characterNext } from '../character';
+import { ObjectOf, Player, Platform, EventState, PlayerEvent } from '../interfaces';
 
 export class Game {
-  public gameKey: string = '';
+  public gameKey = '';
   public gameStarted = false;
   public gameStartedAt?: number;
   public lastTick?: number;
   public serverClockId?: number;
 
-  private eventOccured = false;
   private players: ObjectOf<Player> = {};
   private platforms: ObjectOf<Platform> = {};
   private events: ObjectOf<EventState> = {};
+  private playerEvents: PlayerEvent[] = [];
 
   constructor(gameKey?: string) {
     if (gameKey) {
@@ -20,18 +20,44 @@ export class Game {
     }
   }
 
+  public progressGameDeltaOverride = (deltaOverride: number) => {
+    Object.values(this.players).forEach((player) =>
+      characterNext({
+        player,
+        eventState: this.events[player.playerId],
+        playerEvents: this.playerEvents.map((pe) => ({
+          ...pe,
+          timeSinceLastTick: deltaOverride - pe.timeSinceLastTick,
+        })),
+        platforms: Object.values(this.platforms),
+        delta: deltaOverride,
+      })
+    );
+  };
+
   public progressGame = (fallbackDelta: number) => {
     if (!this.lastTick) {
       this.lastTick = this.gameStartedAt;
     }
-    
+
     const currentTick = Date.now();
     const delta = this.lastTick ? currentTick - this.lastTick : fallbackDelta;
-    
+
     Object.values(this.players).forEach((player) =>
-      characterNext(player, this.events[player.playerId], Object.values(this.platforms), delta)
+      characterNext({
+        player,
+        eventState: this.events[player.playerId],
+        playerEvents: this.playerEvents.map((pe) => ({
+          ...pe,
+          timeSinceLastTick: this.lastTick
+            ? delta - (this.lastTick - pe.timeSinceLastTick)
+            : fallbackDelta - pe.timeSinceLastTick,
+        })),
+        platforms: Object.values(this.platforms),
+        delta,
+      })
     );
-    
+
     this.lastTick = currentTick;
   };
 
@@ -51,10 +77,11 @@ export class Game {
     this.events[player.playerId] = { right: false, left: false };
   };
 
-  public processPlayerEvent = (playerId: string, event: USER_INPUT, timestamp: number) => {
+  public processPlayerEvent = (playerId: string, event: USER_INPUT, timestamp?: number) => {
     if (!this.players[playerId]) {
       throw new Error(`Invalid playerId given to event processor`);
     }
+    this.playerEvents.push({ playerId, event, timeSinceLastTick: timestamp || 0 });
     switch (event) {
       case USER_INPUT.LEFT_DOWN:
         this.events[playerId].left = true;
@@ -71,7 +98,6 @@ export class Game {
       default:
         throw new Error(`Unknown event encountered ${event}`);
     }
-    this.eventOccured = true;
   };
 
   public getPlayer = (playerId: string, throwError = true) => {
@@ -80,10 +106,10 @@ export class Game {
     }
     return this.players[playerId];
   };
-  
+
   public getPlayersExcept = (exceptPlayerId: string) => {
-    return Object.values(this.players).filter(i => i.playerId !== exceptPlayerId);
-  }
+    return Object.values(this.players).filter((i) => i.playerId !== exceptPlayerId);
+  };
 
   public getNonRenderedPlayers = () => {
     const playersToRender = Object.values(this.players).filter((player) => !player.rendered);
@@ -102,37 +128,31 @@ export class Game {
   public addPlatform = (platform: Platform) => {
     this.platforms[platform.id] = platform;
   };
-  
+
   public setPlayerReady = (playerId: string) => {
     this.players[playerId].ready = true;
-  }
-  
+  };
+
   public getStartTimeIfAllPlayersReady = (): number | null => {
-    const allReady = Object.values(this.players).every(i => i.ready);
+    const allReady = Object.values(this.players).every((i) => i.ready);
     return allReady ? Date.now() : null;
-  }
-  
+  };
+
   public setPlayerDisconnected = (playerId: string) => {
     this.players[playerId].disconnected = true;
-  }
-  
+  };
+
   public areAllPlayersDisconnected = () => {
-    return Object.values(this.players).every(i => i.disconnected);
-  }
-  
+    return Object.values(this.players).every((i) => i.disconnected);
+  };
+
   public updatePlayers = (players: ObjectOf<Player>) => {
     this.players = players;
-  }
-  
-  public checkEventOccurance = () => {
-    const didEventOccured = this.eventOccured;
-    this.eventOccured = false;
-    return didEventOccured;
-  }
-  
+  };
+
   public getGameState = () => {
     return {
       players: this.players,
     };
-  }
+  };
 }
