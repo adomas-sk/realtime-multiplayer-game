@@ -20,60 +20,74 @@ describe('Game', () => {
     });
     return game;
   };
+  
+  it('should do', () => {
+    const gameOne = createGame();
 
-  describe('same output when deltas are different but sum up to same amount', () => {
-    it('should give same output from falling', () => {
-      const gameOne = createGame();
-      const gameTwo = createGame();
-
-      gameOne.progressGameDeltaOverride(1500);
-      gameOne.progressGameDeltaOverride(1500);
-
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-
-      expect(gameOne.getPlayer('123')).toEqual(gameTwo.getPlayer('123'));
-    });
-
-    it('should give same output from falling and walking event', () => {
-      const gameOne = createGame();
-      const gameTwo = createGame();
-
-      gameOne.progressGameDeltaOverride(1500);
-      gameOne.processPlayerEvent('123', USER_INPUT.RIGHT_DOWN);
-      gameOne.progressGameDeltaOverride(1500);
-
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.processPlayerEvent('123', USER_INPUT.RIGHT_DOWN);
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-
-      expect(gameOne.getPlayer('123')).toEqual(gameTwo.getPlayer('123'));
-    });
-
-    it('should give same output from falling and walking event if it was fired in the past', () => {
-      const gameOne = createGame();
-      const gameTwo = createGame();
-
-      gameOne.progressGameDeltaOverride(500);
-      gameOne.progressGameDeltaOverride(500);
-      gameOne.progressGameDeltaOverride(500);
-      gameOne.processPlayerEvent('123', USER_INPUT.RIGHT_DOWN, 500);
-      gameOne.progressGameDeltaOverride(1000);
-
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.progressGameDeltaOverride(500);
-      gameTwo.processPlayerEvent('123', USER_INPUT.RIGHT_DOWN);
-      gameTwo.progressGameDeltaOverride(1500);
-
-      expect(gameOne.getPlayer('123')).toEqual(gameTwo.getPlayer('123'));
-    });
+    gameOne.progressGameDeltaOverride(150);
+    gameOne.processPlayerEvent('123', USER_INPUT.RIGHT_DOWN);
+    gameOne.progressGameDeltaOverride(50);
+    gameOne.progressGameDeltaOverride(50);
+    gameOne.progressGameDeltaOverride(50);
+    
+    // gameOne.progressGameDeltaOverride(150);
+    
+    console.log(gameOne.getPlayer('123'));
   });
+
+  // describe('same output when deltas are different but sum up to same amount', () => {
+  //   it('should give same output from falling', () => {
+  //     const gameOne = createGame();
+  //     const gameTwo = createGame();
+
+  //     gameOne.progressGameDeltaOverride(150);
+  //     gameOne.progressGameDeltaOverride(150);
+
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.progressGameDeltaOverride(50);
+
+  //     expect(gameOne.getPlayer('123')).toEqual(gameTwo.getPlayer('123'));
+  //   });
+
+  //   it('should give same output from falling and walking event', () => {
+  //     const gameOne = createGame();
+  //     const gameTwo = createGame();
+
+  //     gameOne.progressGameDeltaOverride(150);
+  //     gameOne.processPlayerEvent('123', USER_INPUT.RIGHT_DOWN);
+  //     gameOne.progressGameDeltaOverride(150);
+
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.processPlayerEvent('123', USER_INPUT.RIGHT_DOWN);
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.progressGameDeltaOverride(50);
+  //     gameTwo.progressGameDeltaOverride(50);
+
+  //     expect(gameOne.getPlayer('123')).toEqual(gameTwo.getPlayer('123'));
+  //   });
+
+  //   it('should give same output from falling and walking event if it was fired in the past', () => {
+  //     const gameOne = createGame();
+  //     const gameTwo = createGame();
+
+  //     gameOne.progressGameDeltaOverride(500);
+  //     gameOne.progressGameDeltaOverride(500);
+  //     gameOne.progressGameDeltaOverride(500);
+  //     gameOne.processPlayerEvent('123', USER_INPUT.RIGHT_DOWN, 500);
+  //     gameOne.progressGameDeltaOverride(1000);
+
+  //     gameTwo.progressGameDeltaOverride(500);
+  //     gameTwo.progressGameDeltaOverride(500);
+  //     gameTwo.processPlayerEvent('123', USER_INPUT.RIGHT_DOWN);
+  //     gameTwo.progressGameDeltaOverride(1500);
+
+  //     expect(gameOne.getPlayer('123')).toEqual(gameTwo.getPlayer('123'));
+  //   });
+  // });
 });

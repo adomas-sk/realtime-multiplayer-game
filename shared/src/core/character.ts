@@ -1,10 +1,10 @@
 import { USER_INPUT } from '../connection';
 import { Player, Platform, PlayerState, EventState, PlayerEvent } from './interfaces';
 
-const GRAVITY = 0.003;
-const ACCELLERATION = 0.3;
+const GRAVITY = 0.00003;
+const ACCELLERATION = 0.0003;
 const MAX_SPEED = 5;
-const FRICTION = 0.6;
+const FRICTION = 0.006;
 
 interface UpdateVelocityProps {
   player: Player;
@@ -38,9 +38,9 @@ const updateVelocity = ({ player, playerEvents, delta, eventState }: UpdateVeloc
       }
     }
     if (right) {
-      player.playerState.velocity[0] -= ACCELLERATION * event.timeSinceLastTick;
-      if (player.playerState.velocity[0] <= -MAX_SPEED) {
-        player.playerState.velocity[0] = -MAX_SPEED;
+      player.playerState.velocity[0] += ACCELLERATION * event.timeSinceLastTick;
+      if (player.playerState.velocity[0] >= MAX_SPEED) {
+        player.playerState.velocity[0] = MAX_SPEED;
       }
     }
     if (((!left && !right) || (left && right)) && player.playerState.velocity[0] !== 0) {
@@ -58,36 +58,38 @@ const updateVelocity = ({ player, playerEvents, delta, eventState }: UpdateVeloc
     }
   });
 
-  if (leftChanges || rightChanges) {
-    if (eventState.left) {
-      player.playerState.velocity[0] -= ACCELLERATION * delta;
-      if (player.playerState.velocity[0] <= -MAX_SPEED) {
-        player.playerState.velocity[0] = -MAX_SPEED;
-      }
+  if (!leftChanges && eventState.left) {
+    player.playerState.velocity[0] -= ACCELLERATION * delta;
+    if (player.playerState.velocity[0] <= -MAX_SPEED) {
+      player.playerState.velocity[0] = -MAX_SPEED;
     }
-    if (eventState.right) {
-      player.playerState.velocity[0] += ACCELLERATION * delta;
-      if (player.playerState.velocity[0] >= MAX_SPEED) {
-        player.playerState.velocity[0] = MAX_SPEED;
-      }
+  }
+  if (!rightChanges && eventState.right) {
+    player.playerState.velocity[0] += ACCELLERATION * delta;
+    if (player.playerState.velocity[0] >= MAX_SPEED) {
+      player.playerState.velocity[0] = MAX_SPEED;
     }
-    if (
-      ((!eventState.left && !eventState.right) || (eventState.left && eventState.right)) &&
-      player.playerState.velocity[0] !== 0
-    ) {
+  }
+  if (
+    !leftChanges &&
+    !rightChanges &&
+    ((!eventState.left && !eventState.right) || (eventState.left && eventState.right)) &&
+    player.playerState.velocity[0] !== 0
+  ) {
+    if (player.playerState.velocity[0] > 0) {
+      player.playerState.velocity[0] -= FRICTION * delta;
+      if (player.playerState.velocity[0] < 0) {
+        player.playerState.velocity[0] = 0;
+      }
+    } else if (player.playerState.velocity[0] < 0) {
+      player.playerState.velocity[0] += FRICTION * delta;
       if (player.playerState.velocity[0] > 0) {
-        player.playerState.velocity[0] -= FRICTION * delta;
-        if (player.playerState.velocity[0] < 0) {
-          player.playerState.velocity[0] = 0;
-        }
-      } else if (player.playerState.velocity[0] < 0) {
-        player.playerState.velocity[0] += FRICTION * delta;
-        if (player.playerState.velocity[0] > 0) {
-          player.playerState.velocity[0] = 0;
-        }
+        player.playerState.velocity[0] = 0;
       }
     }
   }
+  
+  player.playerState.velocity.forEach((i) => roundVelocity(i));
 };
 
 const checkForCollision = (playerState: Player, platform: Platform) => {
@@ -130,8 +132,13 @@ export const characterNext = ({ player, eventState, platforms, delta, playerEven
 
   platforms.forEach((platform) => checkForCollision(player, platform));
 
+  // const deltaInSeconds =
   player.playerState.y += (player.playerState.velocity[1] * delta * delta) / 2;
   player.playerState.x += (player.playerState.velocity[0] * delta * delta) / 2;
 
   checkIfFellOffTheWorld(player.playerState);
+};
+
+const roundVelocity = (velocity: number) => {
+  velocity = Math.round(velocity * 10) / 10;
 };

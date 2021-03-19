@@ -24,7 +24,7 @@ export const joinGameEventHandler = (socket: Socket, games: ObjectOf<Game>) => (
     const newPlayer: Player = {
       playerId: socket.id,
       playerState: {
-        x: 200 + game.getNonRenderedPlayers().length * 50,
+        x: 200 + game.getNonRenderedPlayersIds().length * 50,
         y: 200,
         touchingGround: false,
         velocity: [0, 0],

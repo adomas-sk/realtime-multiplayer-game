@@ -76,11 +76,12 @@ class MatchScene extends Phaser.Scene {
   };
 
   private addPlayers = () => {
-    const playerIds = getGame().getNonRenderedPlayers();
+    const playerIds = getGame().getNonRenderedPlayersIds();
     if (playerIds.length) {
       playerIds.forEach((playerId) => {
         const character = new Character(this, playerId);
         this.characters.push(character);
+        getGame().setPlayerAsRendered(playerId);
       });
     }
   };

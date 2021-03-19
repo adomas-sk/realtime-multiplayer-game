@@ -6,7 +6,7 @@ export class Game {
   public gameKey = '';
   public gameStarted = false;
   public gameStartedAt?: number;
-  public lastTick?: number;
+  public lastTick = 0;
   public serverClockId?: number;
 
   private players: ObjectOf<Player> = {};
@@ -20,45 +20,36 @@ export class Game {
     }
   }
 
-  public progressGameDeltaOverride = (deltaOverride: number) => {
-    Object.values(this.players).forEach((player) =>
-      characterNext({
-        player,
-        eventState: this.events[player.playerId],
-        playerEvents: this.playerEvents.map((pe) => ({
-          ...pe,
-          timeSinceLastTick: deltaOverride - pe.timeSinceLastTick,
-        })),
-        platforms: Object.values(this.platforms),
-        delta: deltaOverride,
-      })
-    );
+  public progressGameDeltaOverride = (delta: number) => {
+    this.progressCharacters(delta);
+    this.playerEvents = [];
+    this.lastTick += delta;
   };
 
-  public progressGame = (fallbackDelta: number) => {
+  public progressGame = (_fallbackDelta: number) => {
     if (!this.lastTick) {
-      this.lastTick = this.gameStartedAt;
+      this.lastTick = this.gameStartedAt || 0;
     }
 
     const currentTick = Date.now();
-    const delta = this.lastTick ? currentTick - this.lastTick : fallbackDelta;
+    const delta = currentTick - this.lastTick;
 
+    this.progressCharacters(delta);
+    this.playerEvents = [];
+
+    this.lastTick = currentTick;
+  };
+
+  private progressCharacters = (delta: number) => {
     Object.values(this.players).forEach((player) =>
       characterNext({
         player,
         eventState: this.events[player.playerId],
-        playerEvents: this.playerEvents.map((pe) => ({
-          ...pe,
-          timeSinceLastTick: this.lastTick
-            ? delta - (this.lastTick - pe.timeSinceLastTick)
-            : fallbackDelta - pe.timeSinceLastTick,
-        })),
+        playerEvents: this.playerEvents.map((pe) => ({ ...pe, timeSinceLastTick: pe.timeSinceLastTick || delta })),
         platforms: Object.values(this.platforms),
         delta,
       })
     );
-
-    this.lastTick = currentTick;
   };
 
   public addGameKey = (gameKey: string) => {
@@ -81,7 +72,7 @@ export class Game {
     if (!this.players[playerId]) {
       throw new Error(`Invalid playerId given to event processor`);
     }
-    this.playerEvents.push({ playerId, event, timeSinceLastTick: timestamp || 0 });
+    this.playerEvents.push({ playerId, event, timeSinceLastTick: timestamp ? this.lastTick - timestamp : 0 });
     switch (event) {
       case USER_INPUT.LEFT_DOWN:
         this.events[playerId].left = true;
@@ -111,13 +102,14 @@ export class Game {
     return Object.values(this.players).filter((i) => i.playerId !== exceptPlayerId);
   };
 
-  public getNonRenderedPlayers = () => {
+  public getNonRenderedPlayersIds = () => {
     const playersToRender = Object.values(this.players).filter((player) => !player.rendered);
     return playersToRender.map((i) => i.playerId);
   };
 
   public setPlayerAsRendered = (playerId: string) => {
     this.players[playerId].rendered = true;
+    console.log(this.players[playerId]);
   };
 
   public startGame = (startTime: number) => {
